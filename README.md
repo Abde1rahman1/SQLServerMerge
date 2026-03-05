@@ -146,13 +146,9 @@ await connection.ExecuteMergeAsync(orderLines, "OrderLines", new[] { "OrderId", 
 
 When a `DbContext` is passed, EF Core `HasColumnName()` mappings are resolved at runtime and applied as priority 1 (explicit dictionary).
 
-## MergeBuilder\<T\>
+### Ignore Columns
 
-Use the fluent builder directly for full control over the generated SQL. `MergeBuilder<T>` is what `ExecuteMerge` uses internally — you can use it standalone when you need features like `Ignore` or `WithDeleteOrphans` that are not exposed through the extension methods.
-
-### Ignore columns
-
-Exclude properties from both `UPDATE SET` and `INSERT`:
+Exclude specific properties from both `UPDATE SET` and `INSERT` using the builder, then execute the SQL yourself:
 
 ```csharp
 var sql = new MergeBuilder<Product>()
@@ -161,9 +157,12 @@ var sql = new MergeBuilder<Product>()
     .Ignore("CreatedDate")
     .Ignore("InternalNotes")
     .Build();
+
+using var cmd = new SqlCommand(sql, connection);
+cmd.ExecuteNonQuery();
 ```
 
-### Delete orphan rows
+### Delete Orphan Rows
 
 Add `WHEN NOT MATCHED BY SOURCE THEN DELETE` for a full-sync merge that removes target rows not present in the source data:
 
@@ -173,31 +172,12 @@ var sql = new MergeBuilder<Product>()
     .WithKey("Id")
     .WithDeleteOrphans()
     .Build();
+
+using var cmd = new SqlCommand(sql, connection);
+cmd.ExecuteNonQuery();
 ```
 
-### Explicit column mapping
-
-Override the SQL column name for a specific C# property:
-
-```csharp
-var sql = new MergeBuilder<Product>()
-    .IntoTable("Products")
-    .WithKey("Id")
-    .WithColumnMapping("Name", "product_name")
-    .WithColumnMapping("Price", "unit_price")
-    .Build();
-```
-
-### Composite key
-
-```csharp
-var sql = new MergeBuilder<OrderLine>()
-    .IntoTable("OrderLines")
-    .WithCompositeKey("OrderId", "ProductId")
-    .Build();
-```
-
-### Full chain example
+### Full Example — Composite Key + Ignore + Column Mapping + Delete Orphans
 
 ```csharp
 var sql = new MergeBuilder<OrderLine>()
@@ -207,9 +187,27 @@ var sql = new MergeBuilder<OrderLine>()
     .WithColumnMapping("Quantity", "qty")
     .WithDeleteOrphans()
     .Build();
+
+using var cmd = new SqlCommand(sql, connection);
+cmd.ExecuteNonQuery();
 ```
 
-### Builder API Reference
+## API Reference
+
+### ExecuteMerge / ExecuteMergeAsync Overloads
+
+All overloads are extension methods on `SqlConnection`. Each sync method has a matching async version with an optional `CancellationToken`.
+
+| Overload | Description |
+|----------|-------------|
+| `ExecuteMerge(data, table, key)` | Single key, default column resolution |
+| `ExecuteMerge(data, table, key, dbContext)` | Single key, EF Core Fluent API mappings |
+| `ExecuteMerge(data, table, key, columnMappings)` | Single key, explicit dictionary mappings |
+| `ExecuteMerge(data, table, keys[])` | Composite key, default column resolution |
+| `ExecuteMerge(data, table, keys[], dbContext)` | Composite key, EF Core Fluent API mappings |
+| `ExecuteMerge(data, table, keys[], columnMappings)` | Composite key, explicit dictionary mappings |
+
+### MergeBuilder\<T\> Methods
 
 | Method | Description |
 |--------|-------------|
@@ -226,6 +224,3 @@ var sql = new MergeBuilder<OrderLine>()
 - .NET Standard 2.1+
 - Microsoft.Data.SqlClient
 
-## License
-
-MIT

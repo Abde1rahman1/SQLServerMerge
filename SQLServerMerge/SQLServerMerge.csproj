@@ -14,6 +14,9 @@
     <PackageTags>sql;sqlserver;merge;bulkcopy;upsert</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageProjectUrl>https://github.com/Abde1rahman1/SQLServerMerge</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/AbdelrahmanSayed/SQLServerMerge.git</RepositoryUrl>
+	  <Copyright>Copyright © 2026 Abdelrahman Sayed</Copyright>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
