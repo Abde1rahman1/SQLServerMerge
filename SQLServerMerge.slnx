@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SQLServerMerge.Tests/SQLServerMerge.Tests.csproj" />
+  <Project Path="SQLServerMerge/SQLServerMerge.csproj" />
+</Solution>
